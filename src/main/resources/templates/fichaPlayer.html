@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ficha de DnD — Responsiva</title>
+  <style>
+    :root{
+      --bg: #0f1115;
+      --panel: #151922;
+      --muted: #99a3b3;
+      --text: #e6e8ee;
+      --accent: #7c5cff;
+      --accent-2: #19c37d;
+      --danger: #ff6363;
+      --radius: 16px;
+      --gap: 14px;
+      --border: 1px solid rgba(255,255,255,0.08);
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    @media (prefers-color-scheme: light){
+      :root{
+        --bg: #f7f8fb; --panel:#ffffff; --text:#1b1f2a; --muted:#5b657a; --accent:#5b6cff; --accent-2:#16a34a; --danger:#ef4444;
+        --border: 1px solid rgba(0,0,0,0.08);
+        --shadow: 0 8px 24px rgba(18, 22, 33, 0.08);
+      }
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:var(--bg); color:var(--text); font-family:var(--font); line-height:1.25;
+      display:flex; flex-direction:column; gap:var(--gap);
+    }
+
+    header{
+      position:sticky; top:0; z-index:50; backdrop-filter: blur(8px);
+      background: color-mix(in oklab, var(--bg) 85%, transparent);
+      border-bottom: var(--border);
+    }
+    .wrap{
+      max-width: 1100px; margin-inline:auto; width:100%; padding: 14px clamp(12px, 3vw, 28px);
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px; font-weight:700; letter-spacing:0.3px;
+    }
+    .brand .logo{width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow: var(--shadow)}
+    .brand small{color:var(--muted); font-weight:600}
+
+    main.wrap{display:grid; grid-template-columns: 1fr; gap: var(--gap)}
+    @media(min-width: 980px){
+      main.wrap{grid-template-columns: 310px 1fr}
+    }
+
+    .card{
+      background:var(--panel); border:var(--border); border-radius:var(--radius); box-shadow: var(--shadow);
+    }
+    .card .card-h{
+      padding:14px 16px; border-bottom:var(--border); display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.2px
+    }
+    .card .card-b{ padding:16px }
+
+    /* Inputs */
+    label{ font-size:12px; color:var(--muted); display:block; margin-bottom:6px; letter-spacing:.2px }
+    .in{ display:block; width:100%; background:transparent; color:var(--text); border:var(--border); border-radius:12px; padding:12px 12px; outline:none }
+    .in:focus{ border-color: color-mix(in oklab, var(--accent), white 10%); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent), transparent 80%) }
+    .row{ display:grid; grid-template-columns: 1fr; gap:var(--gap) }
+    .row-2{ grid-template-columns: 1fr 1fr }
+    .row-3{ grid-template-columns: repeat(3,1fr) }
+    .row-4{ grid-template-columns: repeat(4,1fr) }
+    @media(min-width:700px){ .row-sm-2{ grid-template-columns: 1fr 1fr } }
+
+    .pill{ display:flex; align-items:center; gap:8px; background:color-mix(in oklab, var(--panel), white 4%); border:var(--border); padding:10px 12px; border-radius:999px; }
+
+    /* Atributos */
+    .ability{ display:grid; grid-template-columns: 56px 1fr 56px; gap:8px; align-items:center; padding:10px; border-radius:12px; border:var(--border); background:color-mix(in oklab, var(--panel), white 3%) }
+    .ability .abbr{ font-weight:800; text-align:center }
+    .ability .score, .ability .mod{
+      width:56px; text-align:center; font-variant-numeric: tabular-nums; font-weight:700; padding:10px; border-radius:10px; border:var(--border); background:transparent; color:var(--text)
+    }
+
+    details{ border-top:var(--border) }
+    details[open] > summary{ border-bottom:var(--border) }
+    summary{
+      cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px; font-weight:700
+    }
+    summary::-webkit-details-marker{display:none}
+    .sec{ padding:16px }
+
+    /* Perícias */
+    .skills{ display:grid; grid-template-columns: 1fr; gap:10px }
+    @media(min-width:560px){ .skills{ grid-template-columns: 1fr 1fr } }
+    .skill{ display:grid; grid-template-columns: auto 1fr 70px; gap:10px; align-items:center; padding:10px; border:var(--border); border-radius:12px }
+    .skill input[type="checkbox"]{ width:18px; height:18px }
+    .skill .bonus{ text-align:center }
+
+    textarea.in{ min-height:120px; resize:vertical }
+
+    .badge{ font-size:11px; font-weight:700; color:var(--accent-2); border:1px dashed color-mix(in oklab, var(--accent-2), #000 40%); padding:4px 8px; border-radius:999px }
+
+    footer{ color:var(--muted); text-align:center; padding:20px 10px }
+
+    /* Impressão */
+    @media print{
+      header{ position:static; backdrop-filter:none }
+      body{ background:#fff; color:#000 }
+      .card{ box-shadow:none }
+      a[href]{ text-decoration:none; color:#000 }
+    }
+  </style>
+</head>
+<body>
+  <!-- <header>
+    <div class="wrap" style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+      <div class="brand"><div class="logo"></div> Ficha de DnD <small>— responsiva</small></div>
+      <div class="pill"><span class="badge">Sem JS</span><span>Funciona no PC e no celular</span></div>
+    </div>
+  </header> -->
+
+  <main class="wrap">
+    <!-- COLUNA ESQUERDA: IDENTIDADE & ATRIBUTOS -->
+    <section class="card">
+      <div class="card-h">Personagem</div>
+      <div class="card-b">
+        <div class="row row-sm-2">
+          <div>
+            <label>Nome</label>
+            <input class="in" type="text" placeholder="Ex.: Arannis Sombraluna" />
+          </div>
+          <div>
+            <label>Jogador</label>
+            <input class="in" type="text" placeholder="Seu nome" />
+          </div>
+          <div>
+            <label>Classe & Nível</label>
+            <input class="in" type="text" placeholder="Ex.: Ladino 5" />
+          </div>
+          <div>
+            <label>Antecedente</label>
+            <input class="in" type="text" placeholder="Ex.: Criminoso" />
+          </div>
+          <div>
+            <label>Raça</label>
+            <input class="in" type="text" placeholder="Ex.: Elfo da Floresta" />
+          </div>
+          <div>
+            <label>Alinhamento</label>
+            <input class="in" type="text" placeholder="Ex.: Neutro e Caótico" />
+          </div>
+        </div>
+      </div>
+
+      <details open>
+        <summary>Atributos & Modificadores</summary>
+        <div class="sec row">
+          <div class="ability">
+            <div class="abbr">FOR</div>
+            <input class="score" type="number" min="1" max="30" placeholder="10" />
+            <input class="mod" type="number" placeholder="0" />
+          </div>
+          <div class="ability">
+            <div class="abbr">DES</div>
+            <input class="score" type="number" min="1" max="30" placeholder="14" />
+            <input class="mod" type="number" placeholder="+2" />
+          </div>
+          <div class="ability">
+            <div class="abbr">CON</div>
+            <input class="score" type="number" min="1" max="30" placeholder="12" />
+            <input class="mod" type="number" placeholder="+1" />
+          </div>
+          <div class="ability">
+            <div class="abbr">INT</div>
+            <input class="score" type="number" min="1" max="30" placeholder="10" />
+            <input class="mod" type="number" placeholder="0" />
+          </div>
+          <div class="ability">
+            <div class="abbr">SAB</div>
+            <input class="score" type="number" min="1" max="30" placeholder="10" />
+            <input class="mod" type="number" placeholder="0" />
+          </div>
+          <div class="ability">
+            <div class="abbr">CAR</div>
+            <input class="score" type="number" min="1" max="30" placeholder="8" />
+            <input class="mod" type="number" placeholder="-1" />
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary>Perícias</summary>
+        <div class="sec">
+          <div class="row">
+            <div>
+              <label>Bônus de Proficiência</label>
+              <input class="in" type="number" placeholder="+2" />
+            </div>
+            <div>
+              <label>Sabedoria Passiva (Percepção)</label>
+              <input class="in" type="number" placeholder="10" />
+            </div>
+          </div>
+          <div class="skills" style="margin-top:12px">
+            <!-- Cada perícia: prof / nome / bônus -->
+            <div class="skill">
+              <input type="checkbox" id="acro" />
+              <label for="acro">Acrobacia (DES)</label>
+              <input class="in bonus" type="text" placeholder="+2" />
+            </div>
+            <div class="skill">
+              <input type="checkbox" id="arcan" />
+              <label for="arcan">Arcanismo (INT)</label>
+              <input class="in bonus" type="text" placeholder="+0" />
+            </div>
+            <div class="skill">
+              <input type="checkbox" id="atl" />
+              <label for="atl">Atletismo (FOR)</label>
+              <input class="in bonus" type="text" placeholder="+0" />
+            </div>
+            <div class="skill">
+              <input type="checkbox" id="atua" />
+              <label for="atua">Atuação (CAR)</label>
+              <input class="in bonus" type="text" placeholder="-1" />
+            </div>
+            <div class="skill">
+              <input type="checkbox" id="engan" />
+              <label for="engan">Enganação (CAR)</label>
+              <input class="in bonus" type="text" placeholder="-1" />
+            </div>
+            <div class="skill">
+              <input type="checkbox" id="hist" />
+              <label for="hist">História (INT)</label>
+              <input class="in bonus" type="text" placeholder="0" />
+            </div>
+            <div class="skill">
+              <input type="checkbox" id="intu" />
+              <label for="intu">Intuição (SAB)</label>
+              <input class="in bonus" type="text" placeholder="0" />
+            </div>
+            <div class="skill">
+              <input type="checkbox" id="intim" />
+              <label for="intim">Intimidação (CAR)</label>
+              <input class="in bonus" type="text" placeholder="-1" />
+            </div>
+            <div class="skill">
+              <input type="checkbox" id="invest" />
+              <label for="invest">Investigação (INT)</label>
+              <input class="in bonus" type="text" placeholder="0" />
+            </div>
+            <div class="skill">
+              <input type="checkbox" id="lid" />
+              <label for="lid">Lidar com Animais (SAB)</label>
+              <input class="in bonus" type="text" placeholder="0" />
+            </div>
+            <div class="skill">
+              <input type="checkbox" id="medi" />
+              <label for="medi">Medicina (SAB)</label>
+              <input class="in bonus" type="text" placeholder="0" />
+            </div>
+            <div class="skill">
+              <input type="checkbox" id="nat" />
+              <label for="nat">Natureza (INT)</label>
+              <input class="in bonus" type="text" placeholder="0" />
+            </div>
+            <div class="skill">
+              <input type="checkbox" id="percp" />
+              <label for="percp">Percepção (SAB)</label>
+              <input class="in bonus" type="text" placeholder="0" />
+            </div>
+            <div class="skill">
+              <input type="checkbox" id="perf" />
+              <label for="perf">Perfurmar Armadilhas / Ferramentas de Ladrão (DES)</label>
+              <input class="in bonus" type="text" placeholder="+2" />
+            </div>
+            <div class="skill">
+              <input type="checkbox" id="persu" />
+              <label for="persu">Persuasão (CAR)</label>
+              <input class="in bonus" type="text" placeholder="-1" />
+            </div>
+            <div class="skill">
+              <input type="checkbox" id="prest" />
+              <label for="prest">Prestidigitação (DES)</label>
+              <input class="in bonus" type="text" placeholder="+2" />
+            </div>
+            <div class="skill">
+              <input type="checkbox" id="relig" />
+              <label for="relig">Religião (INT)</label>
+              <input class="in bonus" type="text" placeholder="0" />
+            </div>
+            <div class="skill">
+              <input type="checkbox" id="sobre" />
+              <label for="sobre">Sobrevivência (SAB)</label>
+              <input class="in bonus" type="text" placeholder="0" />
+            </div>
+            <div class="skill">
+              <input type="checkbox" id="furt" />
+              <label for="furt">Furtividade (DES)</label>
+              <input class="in bonus" type="text" placeholder="+2" />
+            </div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- COLUNA DIREITA: COMBATE, INVENTÁRIO, MAGIAS, ANOTAÇÕES -->
+    <section class="card">
+      <div class="card-h">Combate & Recursos</div>
+      <div class="card-b">
+        <div class="row row-4">
+          <div>
+            <label>Classe de Armadura (CA)</label>
+            <input class="in" type="number" placeholder="14" />
+          </div>
+          <div>
+            <label>Iniciativa</label>
+            <input class="in" type="text" placeholder="+2" />
+          </div>
+          <div>
+            <label>Deslocamento</label>
+            <input class="in" type="text" placeholder="9 m" />
+          </div>
+          <div>
+            <label>Proficiência</label>
+            <input class="in" type="text" placeholder="+2" />
+          </div>
+        </div>
+
+        <div class="row row-4" style="margin-top:var(--gap)">
+          <div>
+            <label>PV Máximos</label>
+            <input class="in" type="number" placeholder="32" />
+          </div>
+          <div>
+            <label>PV Atuais</label>
+            <input class="in" type="number" placeholder="32" />
+          </div>
+          <div>
+            <label>PV Temporários</label>
+            <input class="in" type="number" placeholder="0" />
+          </div>
+          <div>
+            <label>Dados de Vida</label>
+            <input class="in" type="text" placeholder="5d8" />
+          </div>
+        </div>
+
+        <div class="row row-3" style="margin-top:var(--gap)">
+          <div>
+            <label>Testes de Resistência</label>
+            <input class="in" type="text" placeholder="FOR, DES" />
+          </div>
+          <div>
+            <label>Idiomas & Proficiências</label>
+            <input class="in" type="text" placeholder="Comum, Élfico, Ferramentas de Ladrão" />
+          </div>
+          <div>
+            <label>Sentidos</label>
+            <input class="in" type="text" placeholder="Visão no Escuro 18 m" />
+          </div>
+        </div>
+      </div>
+
+      <details open>
+        <summary>Ataques & Magias</summary>
+        <div class="sec row">
+          <div>
+            <label>Ataques (nome, bônus, dano)</label>
+            <textarea class="in" placeholder="Adaga (+5 para atingir, 1d4+3 perfurante)&#10;Arco curto (+5, 1d6+3 perfurante)"></textarea>
+          </div>
+          <div>
+            <label>Magias / Truques</label>
+            <textarea class="in" placeholder="Truques: Mão Mágica, Prestidigitação&#10;Nível 1: Mãos Flamejantes (2/dia)"></textarea>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary>Inventário</summary>
+        <div class="sec row">
+          <div>
+            <label>Equipamentos & Itens</label>
+            <textarea class="in" placeholder="Mochila, corda (15 m), 40 po, ferramentas de ladrão..."></textarea>
+          </div>
+          <div class="row row-3">
+            <div>
+              <label>CP</label>
+              <input class="in" type="number" placeholder="0" />
+            </div>
+            <div>
+              <label>PP</label>
+              <input class="in" type="number" placeholder="0" />
+            </div>
+            <div>
+              <label>PO</label>
+              <input class="in" type="number" placeholder="0" />
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary>Traços, Talentos & Anotações</summary>
+        <div class="sec row">
+          <div>
+            <label>Características de Classe / Raça</label>
+            <textarea class="in" placeholder="Ataque Furtivo 3d6, Expertise (Furtividade, Prestidigitação)..."></textarea>
+          </div>
+          <div>
+            <label>Traços de Personalidade, Ideais, Vínculos, Defeitos</label>
+            <textarea class="in" placeholder="Curioso, não resiste a um bom segredo..."></textarea>
+          </div>
+          <div>
+            <label>Anotações Gerais</label>
+            <textarea class="in" placeholder="NPCs, locais, pistas, objetivos..."></textarea>
+          </div>
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">Dica: você pode <strong>imprimir em PDF</strong> pelo navegador. Expanda as seções desejadas antes de imprimir.</div>
+  </footer>
+</body>
+</html>
