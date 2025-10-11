@@ -8,6 +8,7 @@ import recanto.john.rpg_api.domain.entidade.Entidade;
 
 @Table(name = "Personagens")
 @Entity(name = "Personagem")
+@NoArgsConstructor
 public class Personagem extends Entidade {
 
     public Personagem(@Valid DadosCadastroEntidade dados) {

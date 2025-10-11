@@ -15,7 +15,7 @@ import recanto.john.rpg_api.domain.personagem.Racas;
 @EqualsAndHashCode( of = "id")
 public abstract class Entidade {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     protected long id;
     protected String nome;
     protected int pontosVida;
