@@ -1,11 +1,10 @@
-package recanto.john.rpg_api.personagem;
+package recanto.john.rpg_api.domain.entidade;
 
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import recanto.john.rpg_api.domain.personagem.Racas;
 
-public record DadosCadastroPersonagem(
+public record DadosCadastroEntidade(
         @NotBlank
         String nome,
         @NotNull
@@ -29,5 +28,4 @@ public record DadosCadastroPersonagem(
         @NotNull
         Racas raca
 ) {
-
 }

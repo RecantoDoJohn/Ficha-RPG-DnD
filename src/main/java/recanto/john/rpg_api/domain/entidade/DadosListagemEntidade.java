@@ -1,9 +1,9 @@
-package recanto.john.rpg_api.personagem;
+package recanto.john.rpg_api.domain.entidade;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import recanto.john.rpg_api.domain.personagem.Personagem;
+import recanto.john.rpg_api.domain.personagem.Racas;
 
-public record DadosListagemPersonagem(
+public record DadosListagemEntidade(
                                       String nome,
                                       int pontosVida,
                                       int nivel,
@@ -16,7 +16,7 @@ public record DadosListagemPersonagem(
                                       int carisma,
                                       Racas raca) {
 
-    public DadosListagemPersonagem(Personagem personagem) {
+    public DadosListagemEntidade(Personagem personagem) {
         this(personagem.getNome(), personagem.getPontosVida(), personagem.getNivel(), personagem.getClasseArmdura(), personagem.getForca(), personagem.getDestreza(), personagem.getConstituicao(), personagem.getInteligencia(), personagem.getSabedoria(), personagem.getCarisma(), personagem.getRaca());
     }
 }
