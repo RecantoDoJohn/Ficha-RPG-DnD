@@ -1,4 +1,4 @@
-package recanto.john.rpg_api.personagem;
+package recanto.john.rpg_api.domain.personagem;
 
 public enum Racas {
     HUMANO,
