@@ -8,8 +8,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import recanto.john.rpg_api.domain.entidade.DadosAtualizarEntidade;
 import recanto.john.rpg_api.domain.entidade.DadosCadastroEntidade;
 import recanto.john.rpg_api.domain.entidade.DadosListagemEntidade;
+import recanto.john.rpg_api.domain.entidade.Entidade;
 import recanto.john.rpg_api.domain.personagem.Personagem;
 import recanto.john.rpg_api.domain.personagem.PersonagemRepository;
 
@@ -39,5 +41,15 @@ public class PersonagemController {
         Personagem personagem = repository.getReferenceById(id);
 
         return ResponseEntity.ok(new DadosListagemEntidade(personagem));
+    }
+
+
+    @PutMapping
+    @Transactional
+    public ResponseEntity<?> atualizar(@RequestBody @Valid DadosAtualizarEntidade dados) {
+        var personagem = repository.getReferenceById(dados.id());
+        personagem.atualizaInfos(dados);
+
+        return ResponseEntity.ok(new DadosListagemEntidade( (Entidade) personagem));
     }
 }
