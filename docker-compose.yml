@@ -1,0 +1,20 @@
+services:
+  postgre:
+    image: postgres:17
+    container_name: rpg_pg
+    volumes:
+      - rpg_data:/var/lib/postgresql
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: joao
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: rpg-dnd
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:8
+    restart: unless-stopped
+
+volumes:
+  rpg_data:
