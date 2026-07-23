@@ -5,11 +5,16 @@ import jakarta.validation.Valid;
 import lombok.*;
 import recanto.john.rpg_api.domain.entidade.DadosCadastroEntidade;
 import recanto.john.rpg_api.domain.entidade.Entidade;
+import recanto.john.rpg_api.domain.mesa.Mesa;
 
 @Table(name = "Personagens")
 @Entity(name = "Personagem")
 @NoArgsConstructor
 public class Personagem extends Entidade {
+
+    @ManyToOne
+    @JoinColumn(name = "mesa_id")
+    private Mesa mesa;
 
     public Personagem(@Valid DadosCadastroEntidade dados) {
         this.nome = dados.nome();
