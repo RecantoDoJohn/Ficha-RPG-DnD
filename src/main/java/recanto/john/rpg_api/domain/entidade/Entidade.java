@@ -6,17 +6,20 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import recanto.john.rpg_api.domain.personagem.Racas;
 
-@Entity
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+import java.time.LocalDateTime;
+
+@MappedSuperclass
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode( of = "id")
 public abstract class Entidade {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected long id;
     protected String nome;
     protected Integer pontosVida;
@@ -33,6 +36,16 @@ public abstract class Entidade {
 
     @Enumerated(EnumType.STRING)
     protected Racas raca;
+
+    protected Boolean ativo;
+
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    protected LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    protected LocalDateTime updatedAt;
 
 
     public void atualizaInfos(@Valid DadosAtualizarEntidade dados) {
