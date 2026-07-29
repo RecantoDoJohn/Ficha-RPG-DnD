@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   postgre:
     image: postgres:17
@@ -6,15 +8,17 @@ services:
       - rpg_data:/var/lib/postgresql
     restart: unless-stopped
     environment:
-      POSTGRES_USER: joao
-      POSTGRES_PASSWORD: 1234
-      POSTGRES_DB: rpg-dnd
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
 
   redis:
     image: redis:8
     restart: unless-stopped
+
+
 
 volumes:
   rpg_data:
