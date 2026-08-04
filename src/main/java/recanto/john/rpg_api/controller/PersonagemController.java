@@ -8,12 +8,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 import recanto.john.rpg_api.domain.entidade.DadosAtualizarEntidade;
 import recanto.john.rpg_api.domain.entidade.DadosCadastroEntidade;
 import recanto.john.rpg_api.domain.entidade.DadosListagemEntidade;
 import recanto.john.rpg_api.domain.entidade.Entidade;
 import recanto.john.rpg_api.domain.personagem.Personagem;
 import recanto.john.rpg_api.domain.personagem.PersonagemRepository;
+
+import java.net.URI;
 
 @RestController
 @RequestMapping("/personagem")
@@ -24,10 +27,11 @@ public class PersonagemController {
 
     @PostMapping
     @Transactional
-    public ResponseEntity<?> cadastrarPersonagem(@RequestBody @Valid DadosCadastroEntidade dados) {
-        repository.save(new Personagem(dados));
-//        tem que retornar o id do que foi cadastrado.
-        return  ResponseEntity.ok().build();
+    public ResponseEntity<?> cadastrarPersonagem(@RequestBody @Valid DadosCadastroEntidade dados, UriComponentsBuilder uriBuilder) {
+        Personagem personagem = new Personagem(dados);
+        repository.save(personagem);
+        URI uri = uriBuilder.path("/personagem/{id}").buildAndExpand(personagem.getId()).toUri();
+        return  ResponseEntity.created(uri).body(new DadosListagemEntidade(personagem));
     }
 
     @GetMapping
