@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Mestre - Mensagens</title>
+
+    <!-- Fontes Medievais Minimalistas -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #f4f1ea;
+            --ink-color: #2c241b;
+            --accent-color: #8c7335;
+            --border-color: #4a3c31;
+            --error-color: #8b0000;
+            --success-color: #2e8b57;
+        }
+
+        body {
+            background-color: #e5e0d8;
+            color: var(--ink-color);
+            font-family: 'Lora', serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .painel-container {
+            background-color: var(--bg-color);
+            width: 100%;
+            max-width: 500px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            position: relative;
+        }
+
+        .painel-container::before, .painel-container::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 1px solid var(--accent-color);
+        }
+        .painel-container::before { top: 10px; left: 10px; border-right: none; border-bottom: none; }
+        .painel-container::after { bottom: 10px; right: 10px; border-left: none; border-top: none; }
+
+        header {
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            margin: 0 0 5px 0;
+            color: var(--ink-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .sub-header {
+            font-size: 1rem;
+            font-style: italic;
+            color: var(--accent-color);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        input[type="number"], textarea {
+            width: 100%;
+            padding: 12px;
+            background-color: #fffdf9;
+            border: 1px solid var(--border-color);
+            color: var(--ink-color);
+            font-family: 'Lora', serif;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+            resize: vertical;
+        }
+
+        input[type="number"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 5px rgba(140, 115, 53, 0.3);
+        }
+
+        textarea {
+            height: 120px;
+        }
+
+        .btn-enviar {
+            width: 100%;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            font-family: 'Cinzel', serif;
+            padding: 15px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: var(--ink-color);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-enviar:hover {
+            background: var(--border-color);
+            color: var(--bg-color);
+        }
+
+        .btn-enviar:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            text-align: center;
+            font-style: italic;
+            min-height: 24px;
+        }
+
+        .feedback.success { color: var(--success-color); }
+        .feedback.error { color: var(--error-color); }
+    </style>
+</head>
+<body>
+
+<div class="painel-container">
+    <header>
+        <h1>Sussurros do Mestre</h1>
+        <div class="sub-header">Envie mensagens secretas para seus jogadores</div>
+    </header>
+
+    <form id="formMensagem">
+        <div class="form-group">
+            <label for="idPersonagem">ID do Personagem (Alvo):</label>
+            <input type="number" id="idPersonagem" placeholder="Ex: 1" required min="1">
+        </div>
+
+        <div class="form-group">
+            <label for="mensagemTexto">Mensagem Oculta:</label>
+            <textarea id="mensagemTexto" placeholder="O que seus olhos veem nas sombras..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn-enviar" id="btnEnviar">Enviar Mensagem</button>
+    </form>
+
+    <div id="feedbackBox" class="feedback"></div>
+</div>
+
+<script>
+    // CONFIGURAÇÃO DA API
+    const API_URL = 'http://localhost:8080/mensagem';
+
+    document.getElementById('formMensagem').addEventListener('submit', function(event) {
+        event.preventDefault(); // Impede a página de recarregar
+
+        const btn = document.getElementById('btnEnviar');
+        const feedbackBox = document.getElementById('feedbackBox');
+
+        // Pega os valores do form
+        const id = document.getElementById('idPersonagem').value;
+        const texto = document.getElementById('mensagemTexto').value;
+
+        // Monta o DTO exatamente como seu Record no Java
+        const payload = {
+            idPersonagem: parseInt(id),
+            mensagem: texto
+        };
+
+        // Estilos visuais de carregamento
+        btn.disabled = true;
+        btn.innerText = "Conjurando feitiço...";
+        feedbackBox.className = 'feedback';
+        feedbackBox.innerText = "";
+
+        // Faz a requisição POST para o Controller
+        fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Falha ao enviar mensagem. Verifique a conexão com os deuses (backend).');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Sucesso
+            feedbackBox.className = 'feedback success';
+            feedbackBox.innerText = "Mensagem entregue às mentes dos heróis com sucesso!";
+            document.getElementById('mensagemTexto').value = ''; // Limpa apenas a mensagem para agilizar envios
+        })
+        .catch(error => {
+            // Erro
+            feedbackBox.className = 'feedback error';
+            feedbackBox.innerText = error.message;
+        })
+        .finally(() => {
+            // Restaura o botão
+            btn.disabled = false;
+            btn.innerText = "Enviar Mensagem";
+        });
+    });
+</script>
+</body>
+</html>
