@@ -7,12 +7,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 import recanto.john.rpg_api.domain.entidade.DadosAtualizarEntidade;
 import recanto.john.rpg_api.domain.entidade.DadosCadastroEntidade;
 import recanto.john.rpg_api.domain.entidade.DadosListagemEntidade;
-import recanto.john.rpg_api.domain.entidade.Entidade;
+import recanto.john.rpg_api.domain.jogador.DadosDetalhamentoJogador;
 import recanto.john.rpg_api.domain.personagem.Personagem;
 import recanto.john.rpg_api.domain.personagem.PersonagemRepository;
 
@@ -24,6 +25,9 @@ public class PersonagemController {
 
     @Autowired
     private PersonagemRepository repository;
+
+    @Autowired
+    private SimpMessagingTemplate simpMessage;
 
     @PostMapping
     @Transactional
@@ -54,6 +58,9 @@ public class PersonagemController {
         var personagem = repository.getReferenceById(dados.id());
         personagem.atualizaInfos(dados);
 
-        return ResponseEntity.ok(new DadosListagemEntidade( (Entidade) personagem));
+        simpMessage.convertAndSend("/topic/personagem/" + personagem.getId(), new DadosListagemEntidade(personagem));
+
+
+        return ResponseEntity.ok(new DadosListagemEntidade( personagem));
     }
 }
