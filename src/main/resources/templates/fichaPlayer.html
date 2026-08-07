@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha de Personagem</title>
+
+    <!-- Fontes Medievais Minimalistas -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+    <!-- Bibliotecas SockJS e STOMP -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #f4f1ea;
+            --ink-color: #2c241b;
+            --accent-color: #8c7335;
+            --border-color: #4a3c31;
+        }
+
+        body {
+            background-color: #e5e0d8;
+            color: var(--ink-color);
+            font-family: 'Lora', serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .ficha-container {
+            background-color: var(--bg-color);
+            width: 100%;
+            max-width: 600px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            position: relative;
+            transition: box-shadow 0.4s ease-in-out;
+        }
+
+        .ficha-container::before, .ficha-container::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 1px solid var(--accent-color);
+        }
+        .ficha-container::before { top: 10px; left: 10px; border-right: none; border-bottom: none; }
+        .ficha-container::after { bottom: 10px; right: 10px; border-left: none; border-top: none; }
+
+        header {
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            margin: 0 0 10px 0;
+            color: var(--ink-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .sub-header {
+            font-size: 1.1rem;
+            font-style: italic;
+            color: var(--accent-color);
+        }
+
+        .status-vitais {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .vital-box {
+            text-align: center;
+        }
+
+        .vital-box .label {
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .vital-box .value {
+            font-size: 2rem;
+            font-family: 'Cinzel', serif;
+            border: 1px solid var(--border-color);
+            width: 80px;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            margin: 0 auto;
+            background: #fffdf9;
+            transition: color 0.3s;
+        }
+
+        .atributos {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .atributo-box {
+            border: 1px solid var(--border-color);
+            text-align: center;
+            padding: 15px 0;
+            background: #fffdf9;
+            position: relative;
+        }
+
+        .atributo-box .label {
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .atributo-box .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .loading-msg {
+            text-align: center;
+            font-style: italic;
+            color: #666;
+        }
+
+        .ws-status {
+            position: absolute;
+            top: -25px;
+            right: 0;
+            font-size: 0.8rem;
+            font-style: italic;
+            color: #666;
+        }
+
+        /* ----- ESTILOS DO POP-UP (MENSAGEM SECRETA) ----- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.7); /* Fundo escuro transparente */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-box {
+            background-color: var(--bg-color);
+            border: 2px solid var(--accent-color);
+            padding: 30px 40px;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: translateY(0);
+        }
+
+        .modal-box h2 {
+            font-family: 'Cinzel', serif;
+            color: var(--ink-color);
+            margin-top: 0;
+            font-size: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .modal-box p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin: 20px 0;
+            font-style: italic;
+        }
+
+        .btn-fechar {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            font-family: 'Cinzel', serif;
+            padding: 10px 20px;
+            cursor: pointer;
+            color: var(--ink-color);
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-fechar:hover {
+            background: var(--border-color);
+            color: var(--bg-color);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Ficha Principal -->
+<div class="ficha-container" id="ficha" style="display: none;">
+    <div id="ws-status" class="ws-status">Conectando aos pergaminhos...</div>
+
+    <header>
+        <h1 id="nome">...</h1>
+        <div class="sub-header">
+            Raça: <span id="raca">...</span> &nbsp;|&nbsp; Nível: <span id="nivel">...</span>
+        </div>
+    </header>
+
+    <section class="status-vitais">
+        <div class="vital-box">
+            <span class="label">Pontos de Vida</span>
+            <span class="value" id="pontosVida">0</span>
+        </div>
+        <div class="vital-box">
+            <span class="label">Classe de Armadura</span>
+            <span class="value" id="classeArmdura">0</span>
+        </div>
+    </section>
+
+    <section class="atributos">
+        <div class="atributo-box">
+            <span class="label">Força</span>
+            <span class="value" id="forca">0</span>
+        </div>
+        <div class="atributo-box">
+            <span class="label">Destreza</span>
+            <span class="value" id="destreza">0</span>
+        </div>
+        <div class="atributo-box">
+            <span class="label">Constituição</span>
+            <span class="value" id="constituicao">0</span>
+        </div>
+        <div class="atributo-box">
+            <span class="label">Inteligência</span>
+            <span class="value" id="inteligencia">0</span>
+        </div>
+        <div class="atributo-box">
+            <span class="label">Sabedoria</span>
+            <span class="value" id="sabedoria">0</span>
+        </div>
+        <div class="atributo-box">
+            <span class="label">Carisma</span>
+            <span class="value" id="carisma">0</span>
+        </div>
+    </section>
+</div>
+
+<!-- Mensagem de Loading -->
+<div id="loading" class="loading-msg">Lendo os pergaminhos antigos...</div>
+
+<!-- Estrutura do Pop-up (Mensagem Secreta) -->
+<div class="modal-overlay" id="modalMensagem">
+    <div class="modal-box">
+        <h2>Mensagem do Mestre</h2>
+        <p id="textoMensagem">Sua mensagem secreta aparecerá aqui...</p>
+        <button class="btn-fechar" onclick="fecharMensagem()">Compreendido</button>
+    </div>
+</div>
+
+<script>
+    // CONFIGURAÇÕES DA API
+    const BASE_URL = 'http://localhost:8080';
+
+    const GET_ENDPOINT = (id) => `${BASE_URL}/personagem/${id}`;
+    const WS_ENDPOINT = `${BASE_URL}/ws`;
+
+    // Tópicos STOMP
+    const WS_TOPIC_PERSONAGEM = (id) => `/topic/personagem/${id}`; // Atualização da ficha
+    const WS_TOPIC_MENSAGEM   = (id) => `/topic/mensagem/${id}`;   // Nova mensagem secreta
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('id');
+
+        if (!id) {
+            document.getElementById('loading').innerText = "Aviso: Nenhum ID de herói fornecido na URL.";
+            return;
+        }
+
+        fetch(GET_ENDPOINT(id))
+            .then(response => {
+                if (!response.ok) throw new Error('Personagem não encontrado.');
+                return response.json();
+            })
+            .then(data => {
+                renderizarFicha(data);
+                iniciarWebSocket(id);
+            })
+            .catch(error => {
+                document.getElementById('loading').innerText = "Erro ao buscar os dados: " + error.message;
+                document.getElementById('loading').style.color = "darkred";
+            });
+    });
+
+    // Conecta ao SockJS + STOMP
+    function iniciarWebSocket(id) {
+        const socket = new SockJS(WS_ENDPOINT);
+        const stompClient = Stomp.over(socket);
+        const statusText = document.getElementById('ws-status');
+
+        stompClient.debug = null; // Remove os logs padrão do console
+
+        stompClient.connect({}, function (frame) {
+            statusText.innerText = "Conexão mágica estabelecida (Online)";
+            statusText.style.color = "var(--accent-color)";
+
+            // 1. Escuta alterações na FICHA
+            stompClient.subscribe(WS_TOPIC_PERSONAGEM(id), function (mensagemStomp) {
+                const dadosAtualizados = JSON.parse(mensagemStomp.body);
+                renderizarFicha(dadosAtualizados);
+                piscarFicha();
+            });
+
+            // 2. Escuta MENSAGENS SECRETAS (Novo)
+            stompClient.subscribe(WS_TOPIC_MENSAGEM(id), function (mensagemStomp) {
+                const dtoSecreto = JSON.parse(mensagemStomp.body);
+                // Como seu DTO tem os campos `idPersonagem` e `mensagem`, acessamos a mensagem assim:
+                exibirMensagemSecreta(dtoSecreto.mensagem);
+            });
+
+        }, function(error) {
+            statusText.innerText = "Conexão mágica rompida (Offline)";
+            statusText.style.color = "darkred";
+            setTimeout(() => iniciarWebSocket(id), 5000);
+        });
+    }
+
+    // Funções para controle do Pop-up de Mensagem
+    function exibirMensagemSecreta(texto) {
+        document.getElementById('textoMensagem').innerText = texto;
+        document.getElementById('modalMensagem').classList.add('active');
+    }
+
+    function fecharMensagem() {
+        document.getElementById('modalMensagem').classList.remove('active');
+    }
+
+    // Mapeia o DTO da ficha para o HTML
+    function renderizarFicha(dto) {
+        document.getElementById('nome').innerText = dto.nome;
+        if(dto.raca) {
+            const racaFormatada = dto.raca.charAt(0).toUpperCase() + dto.raca.slice(1).toLowerCase();
+            document.getElementById('raca').innerText = racaFormatada;
+        }
+        document.getElementById('nivel').innerText = dto.nivel;
+        document.getElementById('pontosVida').innerText = dto.pontosVida;
+        document.getElementById('classeArmdura').innerText = dto.classeArmdura;
+
+        document.getElementById('forca').innerText = dto.forca;
+        document.getElementById('destreza').innerText = dto.destreza;
+        document.getElementById('constituicao').innerText = dto.constituicao;
+        document.getElementById('inteligencia').innerText = dto.inteligencia;
+        document.getElementById('sabedoria').innerText = dto.sabedoria;
+        document.getElementById('carisma').innerText = dto.carisma;
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('ficha').style.display = 'block';
+    }
+
+    // Efeito visual quando recebe atualização na ficha
+    function piscarFicha() {
+        const ficha = document.getElementById('ficha');
+        ficha.style.boxShadow = "0 0 25px var(--accent-color)";
+        setTimeout(() => {
+            ficha.style.boxShadow = "0 10px 30px rgba(0, 0, 0, 0.15)";
+        }, 600);
+    }
+</script>
+</body>
+</html>
